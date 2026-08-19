@@ -1,0 +1,16 @@
+fastapi
+uvicorn
+sqlalchemy
+psycopg2-binary
+alembic
+python-dotenv
+celery
+redis
+pyjwt
+passlib[bcrypt]
+bcrypt
+email-validator
+python-multipart
+minio
+openai
+google-genai

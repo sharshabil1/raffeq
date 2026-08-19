@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rafeeq</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg: #EAF1EE;
+    --bg-deep: #DCE9E3;
+    --surface: #FFFFFF;
+    --surface-soft: #F4F9F6;
+    --ink: #1E2E29;
+    --muted: #5C6B65;
+    --faint: #93A39C;
+    --line: #D8E3DE;
+    --plum: #8A5B7E;
+    --plum-deep: #6E4665;
+    --sage: #6E9C82;
+    --gold: #D9A05B;
+    --rose: #C4676B;
+    --radius-lg: 22px;
+    --radius-md: 14px;
+    --radius-sm: 9px;
+    --shadow: 0 10px 30px -12px rgba(30,46,41,.18);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(60% 50% at 15% 0%, #F1F7F3 0%, transparent 60%),
+      radial-gradient(50% 40% at 100% 100%, #E3EEE8 0%, transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font-family:'Karla',sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:0;
+  }
+  h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:500;letter-spacing:-.01em;}
+  button{font-family:'Karla',sans-serif;cursor:pointer;}
+  input,textarea{font-family:'Karla',sans-serif;}
+  ::selection{background:var(--plum);color:#fff;}
+
+  /* ---------- app shell ---------- */
+  .app{
+    width:100%;
+    max-width:430px;
+    min-height:100vh;
+    background:var(--surface);
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    box-shadow:var(--shadow);
+  }
+  @media(min-width:431px){
+    body{padding:28px 0;}
+    .app{min-height:calc(100vh - 56px);border-radius:28px;overflow:hidden;}
+  }
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:16px 20px 10px 20px;
+    flex-shrink:0;
+  }
+  .wordmark{display:flex;align-items:center;gap:9px;}
+  .wordmark .orb-mini{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 32% 28%, #C79AB9, var(--plum) 65%, var(--plum-deep));box-shadow:0 0 0 4px rgba(138,91,126,.12);}
+  .wordmark span{font-family:'Fraunces',serif;font-size:17px;font-weight:600;}
+  .icon-btn{
+    width:34px;height:34px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--surface-soft);border:1px solid var(--line);
+    color:var(--muted);
+  }
+  .icon-btn:hover{color:var(--ink);border-color:var(--plum);}
+  .icon-btn svg{width:16px;height:16px;}
+
+  /* ---------- breathing orb ---------- */
+  .orb{
+    border-radius:50%;
+    background:radial-gradient(circle at 32% 28%, #DCB7D0 0%, var(--plum) 55%, var(--plum-deep) 100%);
+    box-shadow:0 0 0 10px rgba(138,91,126,.08), 0 0 40px rgba(138,91,126,.25);
+    animation:breathe 4.2s ease-in-out infinite;
+  }
+  .orb.listening{background:radial-gradient(circle at 32% 28%, #F0C6C2, var(--rose) 55%, #9B4A4D 100%);box-shadow:0 0 0 10px rgba(196,103,107,.12), 0 0 44px rgba(196,103,107,.3);animation-duration:1.6s;}
+  .orb.small{width:30px;height:30px;box-shadow:0 0 0 5px rgba(138,91,126,.1);}
+  @keyframes breathe{
+    0%,100%{transform:scale(1);}
+    50%{transform:scale(1.07);}
+  }
+
+  /* ---------- screens ---------- */
+  .screen{display:none;flex:1;flex-direction:column;overflow-y:auto;padding:0 20px 24px 20px;}
+  .screen.active{display:flex;}
+  .screen-center{align-items:center;justify-content:center;text-align:center;flex:1;}
+
+  /* ---------- auth ---------- */
+  #screen-auth{padding-top:10px;}
+  .auth-hero{display:flex;flex-direction:column;align-items:center;text-align:center;padding:26px 6px 20px 6px;}
+  .auth-hero .orb{width:78px;height:78px;margin-bottom:18px;}
+  .auth-hero h1{font-size:28px;margin:0 0 6px 0;}
+  .auth-hero p{color:var(--muted);font-size:14px;margin:0;max-width:280px;line-height:1.5;}
+  .seg{display:flex;background:var(--surface-soft);border:1px solid var(--line);border-radius:999px;padding:3px;margin:22px 0 18px 0;}
+  .seg button{flex:1;border:none;background:transparent;padding:9px 0;border-radius:999px;font-size:13px;font-weight:600;color:var(--muted);}
+  .seg button.active{background:var(--ink);color:#fff;}
+  .field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+  .field label{font-size:12px;color:var(--muted);font-weight:600;}
+  .field input{
+    padding:13px 14px;border:1px solid var(--line);border-radius:var(--radius-sm);
+    background:var(--surface-soft);font-size:14.5px;color:var(--ink);outline:none;
+  }
+  .field input:focus{border-color:var(--plum);box-shadow:0 0 0 3px rgba(138,91,126,.12);}
+  .btn{
+    width:100%;padding:13px 16px;border-radius:999px;border:none;
+    font-weight:700;font-size:14.5px;
+  }
+  .btn-primary{background:var(--ink);color:#fff;}
+  .btn-primary:hover{background:var(--plum-deep);}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed;}
+  .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--line);}
+  .btn-ghost:hover{color:var(--ink);border-color:var(--plum);}
+  .link-row{text-align:center;margin-top:14px;font-size:13px;color:var(--muted);}
+  .link-row button{background:none;border:none;color:var(--plum-deep);font-weight:700;text-decoration:underline;font-size:13px;}
+
+  /* ---------- onboarding ---------- */
+  .progress-dots{display:flex;gap:6px;justify-content:center;margin:18px 0 22px 0;}
+  .progress-dots span{width:7px;height:7px;border-radius:50%;background:var(--line);}
+  .progress-dots span.done{background:var(--sage);}
+  .progress-dots span.now{background:var(--plum);}
+  .ob-card{display:flex;flex-direction:column;align-items:center;text-align:center;flex:1;justify-content:center;padding-bottom:10px;}
+  .ob-card .orb.small{margin-bottom:16px;}
+  .ob-card h2{font-size:21px;margin:0 0 22px 0;line-height:1.35;max-width:300px;}
+  .pill-grid{display:flex;flex-direction:column;gap:9px;width:100%;}
+  .pill{
+    padding:13px 16px;border-radius:14px;border:1.5px solid var(--line);
+    background:var(--surface-soft);font-size:14px;font-weight:600;color:var(--ink);
+    text-align:left;
+  }
+  .pill:hover{border-color:var(--plum);}
+  .pill.selected{border-color:var(--plum);background:rgba(138,91,126,.08);color:var(--plum-deep);}
+  .ob-nav{display:flex;gap:10px;margin-top:22px;width:100%;}
+  .ob-nav .btn{flex:1;}
+  .ob-skip{margin-top:14px;font-size:12px;color:var(--faint);background:none;border:none;text-decoration:underline;}
+
+  /* ---------- home ---------- */
+  .greeting{padding:6px 0 4px 0;}
+  .greeting h1{font-size:22px;margin:0 0 2px 0;}
+  .greeting p{color:var(--muted);font-size:13px;margin:0;}
+  .card{background:var(--surface-soft);border:1px solid var(--line);border-radius:var(--radius-lg);padding:18px;margin-top:16px;}
+  .card h3{font-size:14px;margin:0 0 10px 0;display:flex;align-items:center;gap:7px;}
+  .card h3 .eyebrow-dot{width:6px;height:6px;border-radius:50%;background:var(--sage);}
+  .focus-tags{display:flex;flex-wrap:wrap;gap:7px;}
+  .tag{background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:600;color:var(--plum-deep);}
+  .empty-note{font-size:12.5px;color:var(--faint);line-height:1.5;}
+  .quick-actions{display:flex;gap:10px;margin-top:16px;}
+  .quick-actions .qa{
+    flex:1;background:var(--surface-soft);border:1px solid var(--line);border-radius:var(--radius-md);
+    padding:14px 10px;text-align:center;font-size:12.5px;font-weight:700;color:var(--ink);
+  }
+  .quick-actions .qa svg{width:18px;height:18px;margin-bottom:6px;color:var(--plum);}
+  .quick-actions .qa:hover{border-color:var(--plum);}
+  canvas#moodChart{max-height:170px;}
+
+  /* ---------- journal ---------- */
+  .mode-seg{display:flex;background:var(--surface-soft);border:1px solid var(--line);border-radius:999px;padding:3px;margin:16px 0;}
+  .mode-seg button{flex:1;border:none;background:transparent;padding:9px 0;border-radius:999px;font-size:13px;font-weight:600;color:var(--muted);}
+  .mode-seg button.active{background:var(--ink);color:#fff;}
+  #journalText textarea{
+    width:100%;min-height:220px;border:1px solid var(--line);border-radius:var(--radius-md);
+    background:var(--surface-soft);padding:14px;font-size:14.5px;color:var(--ink);resize:vertical;line-height:1.6;outline:none;
+  }
+  #journalText textarea:focus{border-color:var(--plum);}
+  #journalVoice{display:none;flex-direction:column;align-items:center;justify-content:center;flex:1;text-align:center;gap:14px;}
+  .mic-btn{width:96px;height:96px;border-radius:50%;border:none;background:radial-gradient(circle at 32% 28%, #DCB7D0, var(--plum) 60%, var(--plum-deep));display:flex;align-items:center;justify-content:center;box-shadow:0 12px 28px -10px rgba(138,91,126,.5);}
+  .mic-btn svg{width:34px;height:34px;color:#fff;}
+  .mic-btn.rec{background:radial-gradient(circle at 32% 28%, #F0C6C2, var(--rose) 60%, #9B4A4D);animation:breathe 1.4s ease-in-out infinite;}
+  #recTimer{font-family:'Karla',sans-serif;font-size:13px;color:var(--muted);font-weight:700;}
+  .reflecting{display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;}
+  .reflecting p{color:var(--muted);font-size:13.5px;max-width:230px;}
+  .result-card{margin-top:18px;}
+  .result-card pre{white-space:pre-wrap;word-break:break-word;font-family:'Karla',sans-serif;font-size:13.5px;line-height:1.6;color:var(--ink);margin:0;}
+
+  /* ---------- history ---------- */
+  .entry-card{background:var(--surface-soft);border:1px solid var(--line);border-radius:var(--radius-md);padding:14px 16px;margin-top:12px;display:flex;justify-content:space-between;gap:10px;align-items:flex-start;}
+  .entry-card .meta{font-size:11px;color:var(--faint);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
+  .entry-card .snippet{font-size:13.5px;color:var(--ink);line-height:1.5;}
+  .entry-card .del{background:none;border:none;color:var(--faint);flex-shrink:0;padding:4px;}
+  .entry-card .del:hover{color:var(--rose);}
+  .entry-card .del svg{width:16px;height:16px;}
+
+  /* ---------- chat ---------- */
+  #screen-chat{padding-bottom:0;}
+  .chat-scroll{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:8px 0 12px 0;}
+  .bubble-row{display:flex;gap:8px;align-items:flex-end;}
+  .bubble-row.user{justify-content:flex-end;}
+  .bubble{max-width:74%;padding:11px 14px;border-radius:16px;font-size:13.8px;line-height:1.5;}
+  .bubble-row.user .bubble{background:var(--ink);color:#fff;border-bottom-right-radius:5px;}
+  .bubble-row.bot .bubble{background:var(--surface-soft);border:1px solid var(--line);border-bottom-left-radius:5px;}
+  .typing-dots{display:flex;gap:4px;padding:4px 2px;}
+  .typing-dots span{width:6px;height:6px;border-radius:50%;background:var(--faint);animation:tdot 1.2s infinite;}
+  .typing-dots span:nth-child(2){animation-delay:.2s;}
+  .typing-dots span:nth-child(3){animation-delay:.4s;}
+  @keyframes tdot{0%,60%,100%{opacity:.3;}30%{opacity:1;}}
+  .chat-input-row{display:flex;gap:8px;padding:12px 20px 18px 20px;border-top:1px solid var(--line);background:var(--surface);position:sticky;bottom:0;}
+  .chat-input-row input{flex:1;border:1px solid var(--line);border-radius:999px;padding:11px 16px;background:var(--surface-soft);font-size:13.8px;outline:none;}
+  .chat-input-row input:focus{border-color:var(--plum);}
+  .send-btn{width:42px;height:42px;border-radius:50%;border:none;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .send-btn svg{width:17px;height:17px;}
+
+  /* ---------- bottom nav ---------- */
+  .bottomnav{display:none;border-top:1px solid var(--line);background:var(--surface);padding:9px 10px calc(9px + env(safe-area-inset-bottom, 0px)) 10px;flex-shrink:0;}
+  .bottomnav.show{display:flex;}
+  .navbtn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--faint);padding:6px 0;font-size:10.5px;font-weight:700;}
+  .navbtn svg{width:20px;height:20px;}
+  .navbtn.active{color:var(--plum-deep);}
+
+  /* ---------- modal ---------- */
+  .modal-overlay{position:absolute;inset:0;background:rgba(30,46,41,.45);display:none;align-items:flex-end;z-index:50;}
+  .modal-overlay.show{display:flex;}
+  .modal-sheet{background:var(--surface);width:100%;border-radius:22px 22px 0 0;padding:22px 20px 26px 20px;max-height:80%;overflow-y:auto;}
+  .modal-sheet h3{margin:0 0 14px 0;font-size:17px;}
+  .modal-close{display:flex;justify-content:flex-end;margin-bottom:-6px;}
+
+  /* ---------- toast / error banner ---------- */
+  .banner{
+    position:absolute;top:0;left:0;right:0;z-index:60;
+    background:#3B2530;color:#F3E4EE;
+    padding:12px 18px;font-size:12.5px;line-height:1.5;
+    transform:translateY(-110%);transition:transform .25s ease;
+    border-radius:0 0 14px 14px;
+  }
+  .banner.show{transform:translateY(0);}
+  .banner b{color:#F0C6C2;}
+  .banner .close{float:right;background:none;border:none;color:#F3E4EE;font-size:14px;cursor:pointer;}
+
+  .hint{font-size:11.5px;color:var(--faint);margin-top:10px;line-height:1.5;}
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <div class="banner" id="banner"><button class="close" onclick="hideBanner()">✕</button><span id="bannerText"></span></div>
+
+  <div class="topbar" id="topbar" style="display:none;">
+    <div class="wordmark"><div class="orb-mini"></div><span>Rafeeq</span></div>
+    <button class="icon-btn" onclick="openSettings()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>
+    </button>
+  </div>
+
+  <!-- ===================== AUTH ===================== -->
+  <section class="screen active" id="screen-auth">
+    <div class="auth-hero">
+      <div class="orb"></div>
+      <h1>Rafeeq</h1>
+      <p>A quiet companion for the days that are loud. Journal a little, and it starts to know you.</p>
+    </div>
+    <div class="seg">
+      <button class="active" id="authTabLogin" onclick="setAuthMode('login')">Log in</button>
+      <button id="authTabSignup" onclick="setAuthMode('signup')">Sign up</button>
+    </div>
+    <div class="field"><label>Email</label><input type="email" id="authEmail" placeholder="you@example.com"></div>
+    <div class="field"><label>Password</label><input type="password" id="authPassword" placeholder="••••••••"></div>
+    <button class="btn btn-primary" id="authSubmitBtn" onclick="submitAuth()">Log in</button>
+    <p class="hint" id="authHint" style="text-align:center;"></p>
+  </section>
+
+  <!-- ===================== ONBOARDING ===================== -->
+  <section class="screen" id="screen-onboarding">
+    <div class="progress-dots" id="obDots"></div>
+    <div class="ob-card" id="obCard"></div>
+  </section>
+
+  <!-- ===================== HOME ===================== -->
+  <section class="screen" id="screen-home">
+    <div class="greeting">
+      <h1 id="homeGreeting">Hi there</h1>
+      <p id="homeDate"></p>
+    </div>
+
+    <div class="card">
+      <h3><span class="eyebrow-dot"></span>Your focus right now</h3>
+      <div id="focusContent" class="empty-note">Loading…</div>
+    </div>
+
+    <div class="card">
+      <h3><span class="eyebrow-dot"></span>How you've been trending</h3>
+      <canvas id="moodChart" height="170"></canvas>
+      <div id="moodEmpty" class="empty-note" style="display:none;">Keep journaling — your trend line will start to appear after a few entries.</div>
+    </div>
+
+    <div class="quick-actions">
+      <button class="qa" onclick="goTo('journal')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>
+        <div>Write today's entry</div>
+      </button>
+      <button class="qa" onclick="goTo('chat')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        <div>Talk to Rafeeq</div>
+      </button>
+    </div>
+
+    <div class="card">
+      <h3><span class="eyebrow-dot"></span>Check in with yourself</h3>
+      <p class="empty-note" style="margin-bottom:12px;">Compared to when you started, how does things feel lately?</p>
+      <button class="btn btn-ghost" onclick="openCheckin()">Do a quick check-in</button>
+    </div>
+  </section>
+
+  <!-- ===================== JOURNAL ===================== -->
+  <section class="screen" id="screen-journal">
+    <div class="greeting"><h1>Today's entry</h1><p>Type it out, or just talk — whichever feels easier.</p></div>
+    <div class="mode-seg">
+      <button class="active" id="modeTextBtn" onclick="setJournalMode('text')">Type</button>
+      <button id="modeVoiceBtn" onclick="setJournalMode('voice')">Talk</button>
+    </div>
+
+    <div id="journalText">
+      <textarea id="journalTextarea" placeholder="What's on your mind today?"></textarea>
+      <button class="btn btn-primary" style="margin-top:14px;" onclick="submitTextJournal()">Save entry</button>
+    </div>
+
+    <div id="journalVoice">
+      <button class="mic-btn" id="micBtn" onmousedown="startRecording()" onmouseup="stopRecording()" ontouchstart="startRecording(event)" ontouchend="stopRecording(event)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4"/></svg>
+      </button>
+      <div id="recTimer">Hold to record</div>
+    </div>
+
+    <div class="reflecting" id="reflectingView">
+      <div class="orb small" style="width:56px;height:56px;"></div>
+      <p id="reflectingText">Rafeeq is reflecting on this…</p>
+    </div>
+
+    <div class="result-card card" id="resultCard" style="display:none;">
+      <h3><span class="eyebrow-dot"></span>What Rafeeq noticed</h3>
+      <pre id="resultContent"></pre>
+      <button class="btn btn-ghost" style="margin-top:14px;" onclick="resetJournalScreen()">Write another</button>
+    </div>
+  </section>
+
+  <!-- ===================== HISTORY ===================== -->
+  <section class="screen" id="screen-history">
+    <div class="greeting"><h1>Your reflections</h1><p>Everything you've journaled, in one place.</p></div>
+    <div id="historyList"></div>
+  </section>
+
+  <!-- ===================== CHAT ===================== -->
+  <section class="screen" id="screen-chat" style="padding-left:0;padding-right:0;">
+    <div style="padding:0 20px;"><div class="greeting"><h1>Rafeeq</h1><p>Your coach, remembering what you've shared.</p></div></div>
+    <div class="chat-scroll" id="chatScroll" style="padding-left:20px;padding-right:20px;"></div>
+    <div class="chat-input-row">
+      <input type="text" id="chatInput" placeholder="Say what's on your mind…" onkeydown="if(event.key==='Enter')sendChat();">
+      <button class="send-btn" onclick="sendChat()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <!-- ===================== BOTTOM NAV ===================== -->
+  <div class="bottomnav" id="bottomnav">
+    <button class="navbtn active" data-nav="home" onclick="goTo('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Home</button>
+    <button class="navbtn" data-nav="journal" onclick="goTo('journal')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>Journal</button>
+    <button class="navbtn" data-nav="history" onclick="goTo('history')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>History</button>
+    <button class="navbtn" data-nav="chat" onclick="goTo('chat')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>Chat</button>
+  </div>
+
+  <!-- ===================== MODALS ===================== -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-sheet">
+      <div class="modal-close"><button class="icon-btn" onclick="closeModal('settingsModal')">✕</button></div>
+      <h3>Settings</h3>
+      <div class="field"><label>API base URL</label><input type="text" id="baseUrlInput" value="http://localhost:8000"></div>
+      <button class="btn btn-ghost" onclick="toggleDebugLog()">Show debug log</button>
+      <div id="debugLogWrap" style="display:none;max-height:220px;overflow-y:auto;margin-top:12px;border:1px solid var(--line);border-radius:10px;padding:8px;font-family:monospace;font-size:11px;color:var(--muted);"></div>
+      <button class="btn btn-primary" style="margin-top:18px;" onclick="logOut()">Log out</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="checkinModal">
+    <div class="modal-sheet">
+      <div class="modal-close"><button class="icon-btn" onclick="closeModal('checkinModal')">✕</button></div>
+      <h3>Quick check-in</h3>
+      <p class="empty-note" style="margin-bottom:14px;">Compared to when you started with Rafeeq, how are things?</p>
+      <div class="pill-grid">
+        <button class="pill" onclick="submitCheckin('better')">Better than before</button>
+        <button class="pill" onclick="submitCheckin('same')">About the same</button>
+        <button class="pill" onclick="submitCheckin('worse')">Harder than before</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ================= STATE ================= */
+const state = {
+  token: null,
+  user: null,
+  profile: null,
+  onboardingStep: 0,
+  onboardingAnswers: {},
+  chatLoaded: false,
+  moodChart: null,
+  mediaRecorder: null,
+  audioChunks: [],
+  recStart: null,
+  recTimerInterval: null,
+};
+
+const ONBOARDING_QUESTIONS = [
+  { key: 'motivation', q: "What brings you to Rafeeq?", multi:false,
+    options: ["Stress & anxiety","Low mood","Better sleep","Understanding myself","Just exploring"] },
+  { key: 'main_goal', q: "What's your main goal right now?", multi:false,
+    options: ["Feel calmer day-to-day","Understand my patterns","Build a journaling habit","Support in hard moments"] },
+  { key: 'triggers', q: "What are your biggest triggers?", multi:true,
+    options: ["Work","Social situations","Family","Sleep","Health","Finances"] },
+  { key: 'starting_feeling', q: "How are you feeling about starting this?", multi:false,
+    options: ["Hopeful","Nervous","Curious","Not sure yet"] },
+];
+
+/* ================= API HELPER ================= */
+function getBase(){ return document.getElementById('baseUrlInput').value.replace(/\/+$/,''); }
+
+const debugLog = [];
+function pushDebugLog(method, path, status, ok, reqPreview, respPreview){
+  debugLog.unshift({method,path,status,ok,reqPreview,respPreview,time:new Date().toLocaleTimeString()});
+  const wrap = document.getElementById('debugLogWrap');
+  if(wrap.style.display !== 'none') renderDebugLog();
+}
+function renderDebugLog(){
+  const wrap = document.getElementById('debugLogWrap');
+  wrap.innerHTML = debugLog.slice(0,30).map(e=>
+    `<div style="padding:5px 0;border-bottom:1px solid var(--line);">
+      <b style="color:${e.ok?'#6E9C82':'#C4676B'};">${e.method} ${e.status}</b> ${e.path} <span style="color:var(--faint);">${e.time}</span>
+    </div>`).join('') || 'No requests yet.';
+}
+function toggleDebugLog(){
+  const wrap = document.getElementById('debugLogWrap');
+  wrap.style.display = wrap.style.display==='none' ? 'block' : 'none';
+  if(wrap.style.display==='block') renderDebugLog();
+}
+
+function showBanner(text){
+  document.getElementById('bannerText').innerHTML = text;
+  document.getElementById('banner').classList.add('show');
+  clearTimeout(window._bannerTimeout);
+  window._bannerTimeout = setTimeout(hideBanner, 9000);
+}
+function hideBanner(){ document.getElementById('banner').classList.remove('show'); }
+
+function formatErrorDetail(data){
+  if(data && Array.isArray(data.detail)){
+    return data.detail.map(d=>{
+      const loc = Array.isArray(d.loc) ? d.loc.filter(x=>x!=='body').join('.') : '';
+      return `<b>${loc}</b>: ${d.msg}`;
+    }).join('<br>');
+  }
+  if(data && typeof data.detail === 'string') return data.detail;
+  if(data && data.error) return data.error;
+  return 'Something went wrong talking to the API.';
+}
+
+async function api({method='GET', path, body=null, isForm=false, formData=null, auth=true}){
+  const url = getBase() + path;
+  const headers = {};
+  if(!isForm && body!==undefined && body!==null) headers['Content-Type']='application/json';
+  if(isForm && !formData && body) headers['Content-Type']='application/x-www-form-urlencoded';
+  if(auth && state.token) headers['Authorization'] = 'Bearer ' + state.token;
+
+  let fetchBody;
+  let reqPreview = '';
+  if(formData){ fetchBody = formData; reqPreview = '(multipart)'; }
+  else if(isForm && body){ fetchBody = body; reqPreview = body; }
+  else if(body!==undefined && body!==null){ fetchBody = JSON.stringify(body); reqPreview = JSON.stringify(body); }
+
+  let status=0, ok=false, data=null;
+  try{
+    const res = await fetch(url, {method, headers, body: fetchBody});
+    status = res.status; ok = res.ok;
+    const ct = res.headers.get('content-type')||'';
+    data = ct.includes('application/json') ? await res.json() : await res.text();
+  }catch(err){
+    status='network error'; ok=false;
+    data={error:'Could not reach '+url+'. Check the base URL in Settings and that CORS is enabled on the server.'};
+  }
+  pushDebugLog(method, path, status, ok, reqPreview, JSON.stringify(data));
+  if(!ok){
+    showBanner(`<b>${method} ${path}</b> → ${status}<br>${formatErrorDetail(data)}`);
+  }
+  return {status, ok, data};
+}
+
+/* ================= NAV ================= */
+function goTo(screen){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+screen).classList.add('active');
+  document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active', b.dataset.nav===screen));
+  if(screen==='home') renderHome();
+  if(screen==='history') loadHistory();
+  if(screen==='chat' && !state.chatLoaded) loadChatHistory();
+}
+
+function enterApp(){
+  document.getElementById('topbar').style.display='flex';
+  document.getElementById('bottomnav').classList.add('show');
+}
+
+/* ================= MODALS ================= */
+function openSettings(){ document.getElementById('settingsModal').classList.add('show'); }
+function openCheckin(){ document.getElementById('checkinModal').classList.add('show'); }
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+function logOut(){
+  state.token=null; state.user=null; state.profile=null; state.chatLoaded=false;
+  document.getElementById('topbar').style.display='none';
+  document.getElementById('bottomnav').classList.remove('show');
+  closeModal('settingsModal');
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-auth').classList.add('active');
+}
+
+/* ================= AUTH ================= */
+let authMode = 'login';
+function setAuthMode(mode){
+  authMode = mode;
+  document.getElementById('authTabLogin').classList.toggle('active', mode==='login');
+  document.getElementById('authTabSignup').classList.toggle('active', mode==='signup');
+  document.getElementById('authSubmitBtn').textContent = mode==='login' ? 'Log in' : 'Create account';
+  document.getElementById('authHint').textContent='';
+}
+
+function extractToken(data){
+  if(!data || typeof data!=='object') return null;
+  return data.access_token || data.token || (data.data && data.data.access_token) || null;
+}
+
+async function submitAuth(){
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const btn = document.getElementById('authSubmitBtn');
+  const hint = document.getElementById('authHint');
+  if(!email || !password){ hint.textContent='Enter an email and password.'; return; }
+  btn.disabled = true;
+
+  if(authMode==='signup'){
+    hint.textContent = 'Creating your account…';
+    const signup = await api({method:'POST', path:'/api/v1/auth/signup', body:{email,password}, auth:false});
+    if(!signup.ok){ btn.disabled=false; hint.textContent='Signup failed — see the message above.'; return; }
+  }
+
+  hint.textContent = 'Logging in…';
+  const login = await api({method:'POST', path:'/api/v1/auth/login', body:{email,password}, auth:false});
+  btn.disabled = false;
+  if(!login.ok){ hint.textContent='Login failed — see the message above.'; return; }
+  const token = extractToken(login.data);
+  if(!token){ hint.textContent='Logged in, but no token was returned by the API.'; return; }
+  state.token = token;
+  hint.textContent='';
+  await bootstrapAfterAuth();
+}
+
+async function bootstrapAfterAuth(){
+  const me = await api({method:'GET', path:'/api/v1/auth/me'});
+  if(me.ok) state.user = me.data;
+
+  const prof = await api({method:'GET', path:'/api/v1/profile'});
+  enterApp();
+  if(prof.ok && prof.data && Object.keys(prof.data).some(k => prof.data[k] !== null && prof.data[k] !== undefined && prof.data[k] !== '')){
+    state.profile = prof.data;
+    goTo('home');
+  } else {
+    startOnboarding();
+  }
+}
+
+/* ================= ONBOARDING ================= */
+function startOnboarding(){
+  state.onboardingStep = 0;
+  state.onboardingAnswers = {};
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-onboarding').classList.add('active');
+  renderOnboardingStep();
+}
+
+function renderOnboardingStep(){
+  const dots = document.getElementById('obDots');
+  dots.innerHTML = ONBOARDING_QUESTIONS.map((_,i)=>
+    `<span class="${i<state.onboardingStep?'done':i===state.onboardingStep?'now':''}"></span>`).join('');
+
+  const step = ONBOARDING_QUESTIONS[state.onboardingStep];
+  const card = document.getElementById('obCard');
+  const current = state.onboardingAnswers[step.key];
+  const selected = step.multi ? (current||[]) : current;
+
+  card.innerHTML = `
+    <div class="orb small"></div>
+    <h2>${step.q}</h2>
+    <div class="pill-grid" id="obOptions"></div>
+    <div class="ob-nav">
+      ${state.onboardingStep>0 ? '<button class="btn btn-ghost" onclick="obBack()">Back</button>' : ''}
+      <button class="btn btn-primary" id="obNextBtn" onclick="obNext()">${state.onboardingStep===ONBOARDING_QUESTIONS.length-1?'Finish':'Next'}</button>
+    </div>
+    <button class="ob-skip" onclick="skipOnboarding()">Skip for now</button>
+  `;
+
+  const opts = document.getElementById('obOptions');
+  step.options.forEach(opt=>{
+    const isSel = step.multi ? selected && selected.includes(opt) : selected===opt;
+    const b = document.createElement('button');
+    b.className = 'pill' + (isSel ? ' selected' : '');
+    b.textContent = opt;
+    b.onclick = ()=>{
+      if(step.multi){
+        const arr = state.onboardingAnswers[step.key] || [];
+        const idx = arr.indexOf(opt);
+        if(idx>-1) arr.splice(idx,1); else arr.push(opt);
+        state.onboardingAnswers[step.key] = arr;
+      } else {
+        state.onboardingAnswers[step.key] = opt;
+      }
+      renderOnboardingStep();
+    };
+    opts.appendChild(b);
+  });
+
+  const nextBtn = document.getElementById('obNextBtn');
+  const hasAnswer = step.multi ? (selected && selected.length>0) : !!selected;
+  nextBtn.disabled = !hasAnswer;
+}
+
+function obBack(){ state.onboardingStep = Math.max(0, state.onboardingStep-1); renderOnboardingStep(); }
+
+async function obNext(){
+  if(state.onboardingStep < ONBOARDING_QUESTIONS.length-1){
+    state.onboardingStep++;
+    renderOnboardingStep();
+  } else {
+    const res = await api({method:'POST', path:'/api/v1/profile/onboarding', body: state.onboardingAnswers});
+    if(res.ok) state.profile = res.data;
+    goTo('home');
+  }
+}
+function skipOnboarding(){ goTo('home'); }
+
+/* ================= HOME ================= */
+async function renderHome(){
+  const name = state.user && state.user.email ? state.user.email.split('@')[0] : 'there';
+  document.getElementById('homeGreeting').textContent = 'Hi, ' + name;
+  document.getElementById('homeDate').textContent = new Date().toLocaleDateString(undefined,{weekday:'long', month:'long', day:'numeric'});
+
+  const prof = await api({method:'GET', path:'/api/v1/profile'});
+  const focusEl = document.getElementById('focusContent');
+  if(prof.ok && prof.data){
+    state.profile = prof.data;
+    const focus = prof.data.current_focus || prof.data.baseline_state || prof.data;
+    const tags = [];
+    if(Array.isArray(focus)) focus.forEach(f=>tags.push(String(f)));
+    else if(typeof focus==='object') Object.values(focus).forEach(v=>{
+      if(Array.isArray(v)) v.forEach(x=>tags.push(String(x)));
+      else if(v) tags.push(String(v));
+    });
+    focusEl.innerHTML = tags.length
+      ? `<div class="focus-tags">${tags.slice(0,8).map(t=>`<span class="tag">${t}</span>`).join('')}</div>`
+      : `<div class="empty-note">Once you've journaled a bit, Rafeeq will start noticing patterns here.</div>`;
+  } else {
+    focusEl.innerHTML = `<div class="empty-note">Once you've journaled a bit, Rafeeq will start noticing patterns here.</div>`;
+  }
+
+  const hist = await api({method:'GET', path:'/api/v1/profile/history'});
+  renderMoodChart(hist.ok ? hist.data : null);
+}
+
+function renderMoodChart(data){
+  const canvas = document.getElementById('moodChart');
+  const emptyEl = document.getElementById('moodEmpty');
+  let items = [];
+  if(Array.isArray(data)) items = data;
+  else if(data && Array.isArray(data.history)) items = data.history;
+  else if(data && Array.isArray(data.items)) items = data.items;
+  else if(data && Array.isArray(data.entries)) items = data.entries;
+
+  const points = items.map(it=>{
+    const val = it.mood_score ?? it.score ?? it.value ?? it.mood ?? null;
+    const label = it.date || it.created_at || it.timestamp || '';
+    return {val, label};
+  }).filter(p=>typeof p.val === 'number');
+
+  if(!points.length){
+    canvas.style.display='none'; emptyEl.style.display='block';
+    return;
+  }
+  canvas.style.display='block'; emptyEl.style.display='none';
+
+  if(state.moodChart) state.moodChart.destroy();
+  state.moodChart = new Chart(canvas, {
+    type:'line',
+    data:{
+      labels: points.map(p=> p.label ? new Date(p.label).toLocaleDateString(undefined,{month:'short',day:'numeric'}) : ''),
+      datasets:[{
+        data: points.map(p=>p.val),
+        borderColor:'#8A5B7E',
+        backgroundColor:'rgba(138,91,126,.12)',
+        fill:true, tension:.35, pointRadius:3, pointBackgroundColor:'#8A5B7E', borderWidth:2.5
+      }]
+    },
+    options:{
+      plugins:{legend:{display:false}},
+      scales:{ y:{ grid:{color:'#D8E3DE'}, ticks:{color:'#5C6B65', font:{size:10}} }, x:{ grid:{display:false}, ticks:{color:'#5C6B65', font:{size:10}} } }
+    }
+  });
+}
+
+async function submitCheckin(reflection){
+  const res = await api({method:'PUT', path:'/api/v1/profile/recalibrate', body:{reflection}});
+  closeModal('checkinModal');
+  if(res.ok) showBanner('Thanks — Rafeeq noted that.');
+}
+
+/* ================= JOURNAL ================= */
+function setJournalMode(mode){
+  document.getElementById('modeTextBtn').classList.toggle('active', mode==='text');
+  document.getElementById('modeVoiceBtn').classList.toggle('active', mode==='voice');
+  document.getElementById('journalText').style.display = mode==='text' ? 'block' : 'none';
+  document.getElementById('journalVoice').style.display = mode==='voice' ? 'flex' : 'none';
+}
+
+function resetJournalScreen(){
+  document.getElementById('resultCard').style.display='none';
+  document.getElementById('reflectingView').style.display='none';
+  document.getElementById('journalTextarea').value='';
+  setJournalMode('text');
+}
+
+async function submitTextJournal(){
+  const text = document.getElementById('journalTextarea').value.trim();
+  if(!text) return;
+  document.getElementById('journalText').style.display='none';
+  document.getElementById('reflectingView').style.display='flex';
+  const res = await api({method:'POST', path:'/api/v1/jobs/text', body:{text_prompt:text}});
+  if(res.ok){
+    const jobId = res.data.job_id || res.data.id;
+    pollJob(jobId);
+  } else {
+    document.getElementById('reflectingView').style.display='none';
+    document.getElementById('journalText').style.display='block';
+  }
+}
+
+function startRecording(e){
+  if(e) e.preventDefault();
+  navigator.mediaDevices.getUserMedia({audio:true}).then(stream=>{
+    state.audioChunks=[];
+    state.mediaRecorder = new MediaRecorder(stream);
+    state.mediaRecorder.ondataavailable = ev=>state.audioChunks.push(ev.data);
+    state.mediaRecorder.start();
+    document.getElementById('micBtn').classList.add('rec');
+    state.recStart = Date.now();
+    state.recTimerInterval = setInterval(()=>{
+      const secs = Math.floor((Date.now()-state.recStart)/1000);
+      document.getElementById('recTimer').textContent = `Recording… ${secs}s`;
+    }, 300);
+  }).catch(()=>{
+    showBanner('Rafeeq needs microphone access to record — check your browser permissions.');
+  });
+}
+
+function stopRecording(e){
+  if(e) e.preventDefault();
+  if(!state.mediaRecorder || state.mediaRecorder.state==='inactive') return;
+  clearInterval(state.recTimerInterval);
+  document.getElementById('micBtn').classList.remove('rec');
+  document.getElementById('recTimer').textContent = 'Hold to record';
+  state.mediaRecorder.onstop = async ()=>{
+    const blob = new Blob(state.audioChunks, {type:'audio/webm'});
+    if(blob.size < 500){ return; } // ignore accidental taps
+    document.getElementById('journalVoice').style.display='none';
+    document.getElementById('reflectingView').style.display='flex';
+    const fd = new FormData();
+    fd.append('file', blob, 'entry.webm');
+    const res = await api({method:'POST', path:'/api/v1/jobs/upload', formData:fd});
+    if(res.ok){
+      const jobId = res.data.job_id || res.data.id;
+      pollJob(jobId);
+    } else {
+      document.getElementById('reflectingView').style.display='none';
+      document.getElementById('journalVoice').style.display='flex';
+    }
+  };
+  state.mediaRecorder.stop();
+}
+
+async function pollJob(jobId, attempt=0){
+  if(!jobId || attempt>40){
+    document.getElementById('reflectingText').textContent = "This is taking longer than expected — check back in a bit.";
+    return;
+  }
+  const res = await api({method:'GET', path:`/api/v1/jobs/${encodeURIComponent(jobId)}/status`});
+  const statusVal = (res.data && (res.data.status || res.data.state) || '').toString().toLowerCase();
+  if(['completed','done','success','finished','complete'].includes(statusVal)){
+    const results = await api({method:'GET', path:`/api/v1/jobs/${encodeURIComponent(jobId)}/results`});
+    document.getElementById('reflectingView').style.display='none';
+    document.getElementById('resultCard').style.display='block';
+    document.getElementById('resultContent').textContent = results.ok ? summarizeResults(results.data) : 'Rafeeq processed this, but the results could not be loaded.';
+  } else if(['failed','error'].includes(statusVal)){
+    document.getElementById('reflectingText').textContent = "Rafeeq had trouble processing that entry. You can try again.";
+    setTimeout(resetJournalScreen, 2500);
+  } else {
+    setTimeout(()=>pollJob(jobId, attempt+1), 2500);
+  }
+}
+
+function summarizeResults(data){
+  if(!data) return 'No details returned.';
+  if(typeof data === 'string') return data;
+  const summary = data.summary || data.insight || data.reflection || data.analysis;
+  if(summary) return typeof summary==='string' ? summary : JSON.stringify(summary, null, 2);
+  return JSON.stringify(data, null, 2);
+}
+
+/* ================= HISTORY ================= */
+async function loadHistory(){
+  const listEl = document.getElementById('historyList');
+  listEl.innerHTML = '<p class="empty-note">Loading…</p>';
+  const res = await api({method:'GET', path:'/api/v1/journals'});
+  if(!res.ok){ listEl.innerHTML = '<p class="empty-note">Could not load your reflections.</p>'; return; }
+  const items = Array.isArray(res.data) ? res.data : (res.data && res.data.items) || [];
+  if(!items.length){ listEl.innerHTML = '<p class="empty-note" style="margin-top:16px;">No reflections yet — your first entry will show up here.</p>'; return; }
+
+  listEl.innerHTML = '';
+  items.forEach(item=>{
+    const id = item.job_id || item.id;
+    const date = item.created_at || item.date || '';
+    const text = item.text || item.text_prompt || item.transcript || item.summary || 'Voice entry';
+    const row = document.createElement('div');
+    row.className = 'entry-card';
+    row.innerHTML = `
+      <div>
+        <div class="meta">${date ? new Date(date).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) : 'Entry'}</div>
+        <div class="snippet">${String(text).slice(0,140)}${String(text).length>140?'…':''}</div>
+      </div>
+      <button class="del" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"/></svg></button>
+    `;
+    row.querySelector('.del').onclick = async ()=>{
+      if(!confirm('Delete this entry?')) return;
+      await api({method:'DELETE', path:`/api/v1/journals/${encodeURIComponent(id)}`});
+      loadHistory();
+    };
+    listEl.appendChild(row);
+  });
+}
+
+/* ================= CHAT ================= */
+function appendBubble(role, text){
+  const scroll = document.getElementById('chatScroll');
+  const row = document.createElement('div');
+  row.className = 'bubble-row ' + (role==='user' ? 'user' : 'bot');
+  row.innerHTML = `<div class="bubble">${text}</div>`;
+  scroll.appendChild(row);
+  scroll.scrollTop = scroll.scrollHeight;
+  return row;
+}
+
+async function loadChatHistory(){
+  state.chatLoaded = true;
+  const res = await api({method:'GET', path:'/api/v1/chat/history'});
+  const scroll = document.getElementById('chatScroll');
+  scroll.innerHTML = '';
+  if(!res.ok){ appendBubble('bot', "Hi, I'm Rafeeq. I'm here whenever you want to talk."); return; }
+  const items = Array.isArray(res.data) ? res.data : (res.data && res.data.items) || [];
+  if(!items.length){ appendBubble('bot', "Hi, I'm Rafeeq. I'm here whenever you want to talk."); return; }
+  items.forEach(item=>{
+    const role = item.role || (item.is_user ? 'user' : 'assistant');
+    const text = item.content || item.message || item.text || '';
+    appendBubble(role==='user'?'user':'bot', text);
+  });
+}
+
+async function sendChat(){
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if(!msg) return;
+  appendBubble('user', msg);
+  input.value='';
+  const typing = appendBubble('bot', '<div class="typing-dots"><span></span><span></span><span></span></div>');
+  const res = await api({method:'POST', path:'/api/v1/chat/message', body:{message: msg}});
+  typing.remove();
+  if(res.ok){
+    const reply = res.data.reply || res.data.message || res.data.response || JSON.stringify(res.data);
+    appendBubble('bot', reply);
+  } else {
+    appendBubble('bot', "I couldn't quite reach the server for that one — try again in a moment.");
+  }
+}
+
+/* ================= INIT ================= */
+setAuthMode('login');
+</script>
+</body>
+</html>

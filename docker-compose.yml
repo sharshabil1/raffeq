@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  myzania:
+    build: .
+    container_name: myzania_app
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      # Change these to secure values!
+      - APP_USERNAME=myadmin
+      - APP_PASSWORD=supersecurepassword123
+      # Generate a random string for this (e.g., your-random-text-here)
+      - FLASK_SECRET_KEY=put_a_long_random_string_here_for_security
+    volumes:
+      - ./data:/app/data

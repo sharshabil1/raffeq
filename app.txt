@@ -1,0 +1,57 @@
+Phase 1: Environment Setup & Core Infrastructure
+
+Goal: Establish the working environment and ensure all services communicate correctly.
+
+    Step 1: Initialize the Project Space. Run the terminal script we discussed to generate the exact directory structure. Set up a Git repository and create your .env file to hold local database credentials and API keys safely.
+
+    Step 2: Container Orchestration. Build and run the docker-compose.yml file. Before deploying to a cloud provider, spin this up on a local Proxmox virtual machine using Tailscale. This allows you to safely test the network configurations, container disk space, and volume mapping in an isolated environment.
+
+    Step 3: Database Migrations. Install alembic to manage database schema changes. Generate the first migration script using the SQLAlchemy models we wrote (User, AnalysisJob, AIResult) and apply it to the PostgreSQL container.
+
+Phase 2: Building the Core API & Storage
+
+Goal: Allow users to authenticate and upload files securely.
+
+    Step 1: Authentication Layer. Implement the JWT (JSON Web Token) authentication in app/api/v1/auth.py. Create endpoints for user registration and login (/signup and /login).
+
+    Step 2: Storage Configuration. Set up a local MinIO container (or an AWS S3 bucket if you prefer). Write a utility script in app/services/storage.py to handle uploading files, generating secure URLs, and handling file deletions.
+
+    Step 3: File Upload Endpoint. Create the /upload endpoint in app/api/v1/upload.py. This endpoint should:
+
+        Authenticate the user.
+
+        Save the uploaded audio file to MinIO/S3.
+
+        Create a new record in the analysis_jobs table with a pending status.
+
+        Return the job_id immediately to the client.
+
+Phase 3: Asynchronous Processing (Celery & Redis)
+
+Goal: Detach heavy operations from the main API thread.
+
+    Step 1: Configure the Celery Worker. In app/core/celery_app.py, establish the connection to the Redis broker.
+
+    Step 2: Task Dispatching. Update the /upload endpoint so that right before it returns the job_id to the user, it triggers process_audio_task.delay(job_id).
+
+    Step 3: Task Execution Engine. In app/worker/tasks.py, write the process_audio_task function. For now, just make it update the database status to processing, wait for 5 seconds (using time.sleep), and then update it to completed. This verifies the worker pipeline is functioning perfectly.
+
+Phase 4: AI Integration Pipeline
+
+Goal: Implement the actual audio and text analysis logic inside the worker.
+
+    Step 1: Speech-to-Text (Whisper). Update the Celery task to fetch the audio file from MinIO. Pass this file to the Whisper API (or a local faster-whisper instance) to generate the text transcript.
+
+    Step 2: NLP Analysis (Gemini Flash). Write a structured prompt for the Gemini API in app/services/ai_models.py. Pass the transcript to Gemini, instructing it to return a JSON object containing the summary, sentiment, and keywords.
+
+    Step 3: Saving Results. Once Gemini returns the JSON payload, save the transcript and the insights into the ai_results table, and mark the analysis_jobs status as completed.
+
+Phase 5: Client Integration & Polling
+
+Goal: Connect the Flutter application to the completed backend.
+
+    Step 1: Status Endpoint. Create a GET endpoint like /jobs/{job_id}/status. This will allow the Flutter app to check if the AI processing is done.
+
+    Step 2: Data Retrieval Endpoint. Create a GET endpoint like /jobs/{job_id}/results that joins the analysis_jobs and ai_results tables to return the final JSON payload to the user.
+
+    Step 3: End-to-End Testing. Use Postman or the auto-generated Swagger UI (http://localhost:8000/docs) to simulate a full user journey: Register -> Login -> Upload Audio -> Check Status -> Retrieve Insights.
