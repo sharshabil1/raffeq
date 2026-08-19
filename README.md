@@ -4,7 +4,7 @@
 
 The platform uses speech-to-text and generative AI to analyze journal entries and provide useful insights such as mood, summaries, keywords, and potential relapse indicators.
 
-[Watch demo video](./video_2026-08-06_17-37-35.mp4)
+[Download Project Video](https://github.com/sharshabil1/raffeq/raw/refs/heads/main/video_2026-08-06_17-37-35.mp4)
 
 ## Features
 
