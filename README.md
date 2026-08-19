@@ -4,6 +4,8 @@
 
 The platform uses speech-to-text and generative AI to analyze journal entries and provide useful insights such as mood, summaries, keywords, and potential relapse indicators.
 
+<video src="./video_2026-08-06_17-37-35.mp4" controls width="800"></video>
+
 ## Features
 
 * Text and voice journaling
